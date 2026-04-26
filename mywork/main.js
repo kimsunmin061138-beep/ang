@@ -4,6 +4,70 @@
  */
 
 document.addEventListener('DOMContentLoaded', () => {
+    /* --- Layout-Stable Typing Effect Implementation --- */
+    const typeWriter = (el, text, speed = 50) => {
+        el.innerHTML = '';
+        el.style.visibility = 'visible';
+        
+        // 글자들을 미리 스팬으로 감싸서 투명하게 삽입 (공간 확보)
+        const spans = text.split('').map(char => {
+            const span = document.createElement('span');
+            if (char === '\n') {
+                return document.createElement('br');
+            }
+            span.textContent = char;
+            span.style.opacity = '0';
+            span.style.transition = 'opacity 0.1s ease';
+            return span;
+        });
+
+        spans.forEach(span => el.appendChild(span));
+
+        // 커서 추가
+        const cursor = document.createElement('span');
+        cursor.className = 'typing-cursor';
+        el.appendChild(cursor);
+
+        let i = 0;
+        const typing = () => {
+            if (i < spans.length) {
+                const current = spans[i];
+                if (current.tagName === 'SPAN') {
+                    current.style.opacity = '1';
+                    // 커서를 현재 글자 뒤로 이동
+                    current.after(cursor);
+                } else if (current.tagName === 'BR') {
+                    current.after(cursor);
+                }
+                i++;
+                setTimeout(typing, speed);
+            } else {
+                if (cursor) cursor.remove();
+            }
+        };
+        typing();
+    };
+
+    const h1El = document.getElementById('hero-typing-h1');
+    const pEl = document.getElementById('hero-typing-p');
+
+    if (h1El && pEl) {
+        const h1Text = "불가능을 현실로 만드는 기술\u00A0혁신,\n본격적인 융합으로 증명하겠습니다.";
+        const pText = "동양미래대 로봇소프트웨어과에서 반도체 장비 모형을 직접 조립하고 제어하며 실무 감각을 익힌 Customer Engineer 스페셜리스트입니다.";
+
+        // 초기에는 숨김 처리 (공간은 차지함)
+        h1El.style.visibility = 'hidden';
+        pEl.style.visibility = 'hidden';
+
+        setTimeout(() => {
+            typeWriter(h1El, h1Text, 70);
+            
+            setTimeout(() => {
+                typeWriter(pEl, pText, 30);
+            }, h1Text.length * 70 + 500);
+        }, 800);
+    }
+
 
     /* --- Constants & state --- */
     const navbar = document.getElementById('navbar');
@@ -602,6 +666,38 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     });
+
+    /* --- Theme Toggle Logic --- */
+    const themeToggle = document.getElementById('theme-toggle');
+    const htmlEl = document.documentElement;
+    const themeIcon = themeToggle ? themeToggle.querySelector('i') : null;
+
+    // Load saved theme
+    const savedTheme = localStorage.getItem('portfolio-theme') || 'light';
+    htmlEl.setAttribute('data-theme', savedTheme);
+    updateThemeIcon(savedTheme);
+
+    if (themeToggle) {
+        themeToggle.addEventListener('click', () => {
+            const currentTheme = htmlEl.getAttribute('data-theme');
+            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+            
+            htmlEl.setAttribute('data-theme', newTheme);
+            localStorage.setItem('portfolio-theme', newTheme);
+            updateThemeIcon(newTheme);
+        });
+    }
+
+    function updateThemeIcon(theme) {
+        if (!themeIcon) return;
+        if (theme === 'dark') {
+            themeIcon.classList.remove('fa-moon');
+            themeIcon.classList.add('fa-sun');
+        } else {
+            themeIcon.classList.remove('fa-sun');
+            themeIcon.classList.add('fa-moon');
+        }
+    }
 
     /* --- Back to Top Button Logic --- */
     const backToTop = document.getElementById('backToTop');
